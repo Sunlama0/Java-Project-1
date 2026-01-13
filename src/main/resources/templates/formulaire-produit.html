@@ -1,38 +1,38 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title th:text="${mode=='edit' ? 'Modifier • Boutique de Thés' : 'Ajouter • Boutique de Thés'}">Formulaire</title>
+    <title th:text="${produit != null and produit.id != null} ? 'Modifier un thé' : 'Ajouter un thé'">Formulaire</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 
-<!-- Sprite SVG (mêmes icônes que la page liste, tu peux le dupliquer) -->
 <svg xmlns="http://www.w3.org/2000/svg" style="display:none">
+    <symbol id="i-arrow-left" viewBox="0 0 24 24">
+        <path fill="currentColor" d="M14.7 6.3a1 1 0 0 1 0 1.4L11.41 11H20a1 1 0 1 1 0 2h-8.59l3.3 3.3a1 1 0 1 1-1.42 1.4l-5-5a1 1 0 0 1 0-1.4l5-5a1 1 0 0 1 1.42 0z"/>
+    </symbol>
     <symbol id="i-save" viewBox="0 0 24 24">
         <path fill="currentColor" d="M17 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V7l-4-4zM7 5h8v4H7V5zm12 14H5V5h1v6h10V5h.17L19 7.83V19z"/>
     </symbol>
-    <symbol id="i-x" viewBox="0 0 24 24">
-        <path fill="currentColor" d="M18.3 5.7a1 1 0 0 1 0 1.4L13.4 12l4.9 4.9a1 1 0 1 1-1.4 1.4L12 13.4l-4.9 4.9a1 1 0 1 1-1.4-1.4l4.9-4.9-4.9-4.9a1 1 0 0 1 1.4-1.4l4.9 4.9 4.9-4.9a1 1 0 0 1 1.4 0z"/>
-    </symbol>
-    <symbol id="i-back" viewBox="0 0 24 24">
-        <path fill="currentColor" d="M14.7 6.3a1 1 0 0 1 0 1.4L11.41 11H20a1 1 0 1 1 0 2h-8.59l3.3 3.3a1 1 0 1 1-1.42 1.4l-5-5a1 1 0 0 1 0-1.4l5-5a1 1 0 0 1 1.42 0z"/>
+    <symbol id="i-edit" viewBox="0 0 24 24">
+        <path fill="currentColor" d="M4 17.25V20a1 1 0 0 0 1 1h2.75a1 1 0 0 0 .71-.29l9.9-9.9a1 1 0 0 0 0-1.42l-2.75-2.75a1 1 0 0 0-1.42 0l-9.9 9.9a1 1 0 0 0-.29.71zM14.5 6.5l3 3"/>
     </symbol>
 </svg>
 
 <div class="container">
+
     <div class="appbar">
         <div class="brand">
             <div class="logo">T</div>
             <div>
-                <h1>Boutique de Thés</h1>
-                <p th:text="${mode=='edit' ? 'Modification d’un produit' : 'Création d’un produit'}"></p>
+                <h1 th:text="${produit != null and produit.id != null} ? 'Modifier un thé' : 'Ajouter un thé'">Formulaire</h1>
+                <p>Informations du produit</p>
             </div>
         </div>
 
         <a class="btn" th:href="@{/}">
-            <svg class="icon"><use href="#i-back"></use></svg>
+            <svg class="icon"><use href="#i-arrow-left"></use></svg>
             Retour
         </a>
     </div>
@@ -40,82 +40,129 @@
     <div class="card">
         <div class="card-header">
             <div class="card-title">
-                <h2 th:text="${mode=='edit' ? 'Modifier un thé' : 'Ajouter un thé'}"></h2>
-                <div class="meta">Renseigne les informations du produit</div>
+                <div>
+                    <h2>Détails</h2>
+                    <div class="meta" th:text="${produit != null and produit.id != null} ? 'Modification' : 'Création'">Création</div>
+                </div>
             </div>
         </div>
 
         <div class="card-body">
 
-            <div class="alert" th:if="${errors != null && !errors.isEmpty()}">
-                <strong>Veuillez corriger :</strong>
+            <div class="alert" th:if="${errors != null and !#lists.isEmpty(errors)}">
+                <strong>Corrige ces champs :</strong>
                 <ul>
                     <li th:each="e : ${errors}" th:text="${e}"></li>
                 </ul>
             </div>
 
+            <!-- CREATE -->
             <form class="form"
-                  th:action="${mode == 'edit'} ? @{/modifier/{id}(id=${produit.id})} : @{/enregistrer}"
-                  th:object="${produit}" method="post">
+                  th:if="${produit == null or produit.id == null}"
+                  th:action="@{/nouveau}"
+                  method="post"
+                  th:object="${produit}">
 
                 <div class="col-6">
-                    <label class="label" for="nom">Nom (max 100)</label>
-                    <input class="input" id="nom" type="text" th:field="*{nom}" placeholder="Ex: Sencha Premium" />
-                    <div class="help">Nom affiché dans la boutique.</div>
+                    <label class="label" for="nom">Nom</label>
+                    <input class="input" id="nom" type="text" th:field="*{nom}" placeholder="Ex : Sencha du Japon" required>
                 </div>
 
                 <div class="col-6">
-                    <label class="label" for="dateReception">Date de réception</label>
-                    <input class="input" id="dateReception" type="date" th:field="*{dateReception}" />
-                    <div class="help">Date d’entrée en stock.</div>
-                </div>
-
-                <div class="col-6">
-                    <label class="label" for="typeThe">Type de thé</label>
-                    <select class="select" id="typeThe" th:field="*{typeThe}">
-                        <option value="">-- Choisir --</option>
+                    <label class="label" for="typeThe">Type</label>
+                    <select class="select" id="typeThe" th:field="*{typeThe}" required>
+                        <option value="" disabled selected>Choisir…</option>
                         <option th:each="t : ${types}" th:value="${t}" th:text="${t}"></option>
                     </select>
                 </div>
 
                 <div class="col-6">
                     <label class="label" for="origine">Origine</label>
-                    <select class="select" id="origine" th:field="*{origine}">
-                        <option value="">-- Choisir --</option>
-                        <option th:each="o : ${origines}" th:value="${o}" th:text="${o}"></option>
+                    <input class="input" id="origine" type="text" th:field="*{origine}" placeholder="Ex : Japon" required>
+                </div>
+
+                <div class="col-3">
+                    <label class="label" for="prix">Prix (€)</label>
+                    <input class="input" id="prix" type="number" step="0.01" min="0" th:field="*{prix}" placeholder="Ex : 8.90" required>
+                </div>
+
+                <div class="col-3">
+                    <label class="label" for="quantiteStock">Stock</label>
+                    <input class="input" id="quantiteStock" type="number" min="0" th:field="*{quantiteStock}" placeholder="Ex : 25" required>
+                </div>
+
+                <div class="col-6">
+                    <label class="label" for="dateReception">Date de réception</label>
+                    <input class="input" id="dateReception" type="date" th:field="*{dateReception}" required>
+                    <div class="help">Format : AAAA-MM-JJ</div>
+                </div>
+
+                <div class="col-12">
+                    <label class="label" for="description">Description</label>
+                    <textarea class="textarea input" id="description" th:field="*{description}" placeholder="Une courte description…"></textarea>
+                    <div class="help">1 à 3 phrases max.</div>
+                </div>
+
+                <div class="col-12" style="display:flex; justify-content:flex-end; gap:10px; margin-top:6px;">
+                    <a class="btn" th:href="@{/}">Annuler</a>
+                    <button class="btn btn-primary" type="submit">
+                        <svg class="icon"><use href="#i-save"></use></svg>
+                        Créer
+                    </button>
+                </div>
+            </form>
+
+            <!-- EDIT -->
+            <form class="form"
+                  th:unless="${produit == null or produit.id == null}"
+                  th:action="@{/modifier/{id}(id=${produit.id})}"
+                  method="post"
+                  th:object="${produit}">
+
+                <div class="col-6">
+                    <label class="label" for="nom2">Nom</label>
+                    <input class="input" id="nom2" type="text" th:field="*{nom}" required>
+                </div>
+
+                <div class="col-6">
+                    <label class="label" for="typeThe2">Type</label>
+                    <select class="select" id="typeThe2" th:field="*{typeThe}" required>
+                        <option th:each="t : ${types}" th:value="${t}" th:text="${t}"></option>
                     </select>
                 </div>
 
                 <div class="col-6">
-                    <label class="label" for="prix">Prix (€)</label>
-                    <input class="input" id="prix" type="number" step="0.01" min="5" max="100" th:field="*{prix}" />
-                    <div class="help">Entre 5 et 100.</div>
+                    <label class="label" for="origine2">Origine</label>
+                    <input class="input" id="origine2" type="text" th:field="*{origine}" required>
+                </div>
+
+                <div class="col-3">
+                    <label class="label" for="prix2">Prix (€)</label>
+                    <input class="input" id="prix2" type="number" step="0.01" min="0" th:field="*{prix}" required>
+                </div>
+
+                <div class="col-3">
+                    <label class="label" for="quantiteStock2">Stock</label>
+                    <input class="input" id="quantiteStock2" type="number" min="0" th:field="*{quantiteStock}" required>
                 </div>
 
                 <div class="col-6">
-                    <label class="label" for="quantiteStock">Quantité en stock</label>
-                    <input class="input" id="quantiteStock" type="number" min="0" th:field="*{quantiteStock}" />
-                    <div class="help">Minimum 0.</div>
+                    <label class="label" for="dateReception2">Date de réception</label>
+                    <input class="input" id="dateReception2" type="date" th:field="*{dateReception}" required>
                 </div>
 
                 <div class="col-12">
-                    <label class="label" for="description">Description (max 500)</label>
-                    <textarea class="input textarea" id="description" th:field="*{description}"
-                              placeholder="Notes de dégustation, arômes, conseils..."></textarea>
+                    <label class="label" for="description2">Description</label>
+                    <textarea class="textarea input" id="description2" th:field="*{description}"></textarea>
                 </div>
 
-                <div class="col-12" style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
-                    <a class="btn" th:href="@{/}">
-                        <svg class="icon"><use href="#i-x"></use></svg>
-                        Annuler
-                    </a>
-
+                <div class="col-12" style="display:flex; justify-content:flex-end; gap:10px; margin-top:6px;">
+                    <a class="btn" th:href="@{/}">Annuler</a>
                     <button class="btn btn-primary" type="submit">
-                        <svg class="icon"><use href="#i-save"></use></svg>
-                        <span th:text="${mode == 'edit' ? 'Mettre à jour' : 'Enregistrer'}"></span>
+                        <svg class="icon"><use href="#i-edit"></use></svg>
+                        Enregistrer
                     </button>
                 </div>
-
             </form>
 
         </div>
@@ -124,7 +171,7 @@
     <div class="footer-note">
         © 2026 • Sup de Vinci • Spring Boot / JPA / MySQL
     </div>
-</div>
 
+</div>
 </body>
 </html>
